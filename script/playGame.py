@@ -1,6 +1,7 @@
 import chess
 import chess.svg
 import modelRunner
+from chessboard import display
 
 board = chess.Board()
 
@@ -32,16 +33,18 @@ def minimax(board, depth, isMaximizing, alpha, beta):
         return bestValue
 
 def getAiMove(board, depth):
-    bestValue = -10000
+    bestValue = 10000  # Start with a very high value because Black is minimizing
     bestMove = None
     for move in board.legal_moves:
         board.push(move)
-        value = minimax(board, depth - 1, False, -10000, 10000)
+        value = minimax(board, depth - 1, True, -10000, 10000)  # Start as True to simulate minimization
         board.pop()
-        if value > bestValue:
+        if value < bestValue:  # Black wants to minimize the value
             bestValue = value
             bestMove = move
+    print(f"Best move: {bestMove}, Best Value: {bestValue}")
     return bestMove
+
 
 SVG_BASE_URL = "https://us-central1-spearsx.cloudfunctions.net/chesspic-fen-image/" 
 
@@ -50,9 +53,9 @@ def svg_url(fen):
   return SVG_BASE_URL + fen_board
 
 if __name__ == "__main__":
-    print(board)
+    game_board = display.start(board.fen())
     print(f"Legal moves: {board.legal_moves}")
-    turn = "u"
+    turn = "u"  # Start with the user and assume the user is White
     while not board.is_game_over():
         if turn == "u":
             userInput = input("Enter move: ")
@@ -62,10 +65,11 @@ if __name__ == "__main__":
                 userInput = input("Enter move: ")
                 userMove = chess.Move.from_uci(userInput)
             board.push(userMove)
-            turn = "a"
+            turn = "a"  # Switch to AI's turn, AI is Black
         else:
-            aiMove = getAiMove(board, 4)
-            print(f"AI move: {aiMove}")
-            turn = "u"
-        print(board)
-        print(f"Legal moves: {board.legal_moves}")
+            aiMove = getAiMove(board, 4)  # AI calculates its move as Black
+            board.push(aiMove)
+            turn = "u"  # Switch back to user's turn
+        print(board.fen())
+        display.update(board.fen(), game_board )
+    input("Game Over")

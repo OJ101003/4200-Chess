@@ -5,7 +5,7 @@ from collections import OrderedDict
 import fenbin
 from pytorch_lightning.loggers import TensorBoardLogger
 
-modelPath = "C:/Users/hacke/Documents/GitHub/4200-Chess/script/bestModel.ckpt"
+modelPath = "C:/Users/hacke/Documents/GitHub/chess-4200/script/bestModel.ckpt"
 class EvaluationModel(pl.LightningModule):
   def __init__(self,learning_rate=1e-3,batch_size=1024,layer_count=10):
     super().__init__()
