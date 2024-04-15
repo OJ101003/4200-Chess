@@ -46,12 +46,6 @@ def getAiMove(board, depth):
     return bestMove
 
 
-SVG_BASE_URL = "https://us-central1-spearsx.cloudfunctions.net/chesspic-fen-image/" 
-
-def svg_url(fen):
-  fen_board = fen.split()[0]
-  return SVG_BASE_URL + fen_board
-
 if __name__ == "__main__":
     game_board = display.start(board.fen())
     print(f"Legal moves: {board.legal_moves}")

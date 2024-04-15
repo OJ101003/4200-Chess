@@ -6,24 +6,25 @@ import fenbin
 from pytorch_lightning.loggers import TensorBoardLogger
 
 modelPath = "C:/Users/hacke/Documents/GitHub/chess-4200/script/bestModel.ckpt"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 class EvaluationModel(pl.LightningModule):
-  def __init__(self,learning_rate=1e-3,batch_size=1024,layer_count=10):
-    super().__init__()
-    self.batch_size = batch_size
-    self.learning_rate = learning_rate
-    layers = []
-    layers.append(("linear-0", nn.Linear(285, 808)))
-    layers.append(("relu-0", nn.ReLU()))
-
-    for i in range(1, layer_count - 1):
-        layers.append((f"linear-{i}", nn.Linear(808, 808)))
-        layers.append((f"relu-{i}", nn.ReLU()))
-
-    layers.append((f"linear-{layer_count - 1}", nn.Linear(808, 1)))
-    self.seq = nn.Sequential(OrderedDict(layers))
+  def __init__(self, learning_rate=1e-3, batch_size=1024, layer_count=10):
+      super().__init__()
+      self.batch_size = batch_size
+      self.learning_rate = learning_rate
+        
+      layers = [("linear-0", nn.Linear(285, 808)), ("relu-0", nn.ReLU())]
+      for i in range(1, layer_count - 1):
+          layers.append((f"linear-{i}", nn.Linear(808, 808)))
+          layers.append((f"relu-{i}", nn.ReLU()))
+      layers.append((f"linear-{layer_count - 1}", nn.Linear(808, 1)))
+      self.seq = nn.Sequential(OrderedDict(layers)).to(self.device)
 
   def forward(self, x):
-    return self.seq(x)
+      x = x.to(self.device)  # Ensure input tensor is on the correct device
+      return self.seq(x)
+
 
   def training_step(self, batch, batch_idx):
     x, y = batch['binary'], batch['eval']
@@ -50,4 +51,7 @@ model.load_state_dict(checkpoint['state_dict'])
 model.eval()
 
 def evalPos(fen):
-    return model(fenbin.fen_to_binary(fen)).item()
+  binary_tensor = fenbin.fen_to_binary(fen).to(device)  # Convert FEN to binary and move to the correct device
+  model.eval()
+  with torch.no_grad():
+    return model(binary_tensor).item()
